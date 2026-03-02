@@ -98,7 +98,7 @@
     </div>
 
     <script>
-        const API = '/.netlify/functions/api'; // Endpoint backend kita
+        const API = '/api'; // Kita gunakan redirect /api agar lebih bersih
         let TOKEN = localStorage.getItem('token');
         let USER = JSON.parse(localStorage.getItem('user'));
 
@@ -296,4 +296,5 @@
         }
     </script>
 </body>
+
 </html>
