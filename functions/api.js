@@ -6,54 +6,65 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
+
+// 1. Middleware Penting
 app.use(cors());
 app.use(express.json());
 
-// INI DIA SOLUSINYA: Middleware untuk perbaiki path
+// 2. Perbaikan Path (Agar Express ngerti alamat Netlify)
 app.use((req, res, next) => {
+  // Jika path mengandung /.netlify/functions/api, potong agar jadi /
   if (req.path.startsWith('/.netlify/functions/api')) {
     req.url = req.path.replace('/.netlify/functions/api', '') || '/';
   }
   next();
 });
 
-// KONFIGURASI
+// 3. Konfigurasi Database
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'rahasia';
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_rahasia';
+
+// Validasi variable
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error("ERROR: Environment Variable Supabase belum diset!");
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ROUTE TEST (Untuk memastikan hidup)
+// 4. Routes (Alamat-alamat API)
+
+// Test koneksinya
 app.get('/test', (req, res) => {
-  res.json({ status: "Backend OK!", db_url: SUPABASE_URL ? "Ada" : "Kosong" });
+  res.json({ status: "Backend Online", url_supabase: SUPABASE_URL ? "Ada" : "KOSONG" });
 });
 
-// AUTH: REGISTER
+// Register
 app.post('/register', async (req, res) => {
   try {
     const { nama, email, password, role, kelas } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email & password wajib' });
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const { data, error } = await supabase.from('akun').insert([{
       nama, email, password: hashedPassword, role: role || 'student', kelas
     }]).select();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
     res.status(201).json({ message: 'Sukses', user: data[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// AUTH: LOGIN
+// Login
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const { data: user, error } = await supabase.from('akun').select('*').eq('email', email).single();
 
     if (error || !user) return res.status(401).json({ error: 'Email salah' });
-    
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: 'Password salah' });
 
@@ -66,7 +77,5 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// ROUTES LAINNYA (Courses, Chat) bisa ditaruh di bawah ini...
-// (Salin route courses dan chat dari kode sebelumnya jika perlu)
-
+// 5. Export ke Netlify
 exports.handler = serverless(app);
