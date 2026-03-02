@@ -6,122 +6,127 @@
     <title>Nulacademy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
-        .chat-bubble { animation: pop 0.2s ease; }
-        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="bg-slate-100 h-screen flex">
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center z-50">
-        <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl text-indigo-600 text-3xl mb-4">
-                    <i class="ri-graduation-cap-fill"></i>
-                </div>
-                <h1 class="text-3xl font-extrabold">Nulacademy</h1>
-                <p class="text-slate-400 text-sm mt-1">Sistem Manajemen Belajar</p>
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="fixed inset-0 gradient-bg flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-6">
+                <!-- LOGO DI SINI -->
+                <img src="https://ibb.co.com/qY24Zyhp" alt="Logo Nulacademy" class="mx-auto h-16 w-16 rounded-2xl mb-3 object-cover bg-indigo-100">
+                <h1 class="text-2xl font-extrabold text-slate-800">Nulacademy</h1>
+                <p class="text-slate-400 text-xs mt-1">Masuk untuk melanjutkan</p>
             </div>
             <form id="loginForm" class="space-y-4">
-                <input type="email" id="loginEmail" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 ring-indigo-500 outline-none" placeholder="Email" required>
-                <input type="password" id="loginPass" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 ring-indigo-500 outline-none" placeholder="Password" required>
-                <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition">Masuk</button>
+                <input type="email" id="loginEmail" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 ring-indigo-500 outline-none" placeholder="Email" required>
+                <input type="password" id="loginPass" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 ring-indigo-500 outline-none" placeholder="Password" required>
+                <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition">Login</button>
             </form>
             <p class="text-center text-sm text-slate-500 mt-4">
-                Belum punya akun? <a href="#" onclick="showRegister()" class="text-indigo-600 font-bold">Daftar</a>
+                Belum punya akun? <a href="#" onclick="toggleRegister()" class="text-indigo-600 font-bold cursor-pointer">Daftar Siswa</a>
             </p>
         </div>
-    </div>
-
-    <!-- REGISTER MODAL -->
-    <div id="registerModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden items-center justify-center">
-        <div class="bg-white p-8 rounded-3xl w-full max-w-md relative">
-            <button onclick="hideRegister()" class="absolute top-4 right-4 text-slate-400 hover:text-black"><i class="ri-close-line text-xl"></i></button>
-            <h2 class="text-xl font-bold mb-6">Buat Akun Baru</h2>
-            <form id="registerForm" class="space-y-3">
-                <input type="text" id="regNama" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Nama Lengkap" required>
-                <input type="email" id="regEmail" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Email" required>
-                <input type="password" id="regPass" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Password" required>
-                <div class="flex gap-3">
-                    <select id="regKelas" class="w-1/2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                        <option value="Pemula">Pemula</option>
-                        <option value="Senior">Senior</option>
-                        <option value="Lanjutan">Lanjutan</option>
-                    </select>
-                    <select id="regRole" class="w-1/2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                        <option value="student">Student</option>
-                        <option value="teacher">Teacher</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl">Daftar Sekarang</button>
-            </form>
+        
+        <!-- REGISTER MODAL -->
+        <div id="registerModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+             <div class="bg-white p-8 rounded-2xl w-full max-w-md relative">
+                <button onclick="toggleRegister()" class="absolute top-4 right-4 text-slate-400"><i class="ri-close-line text-xl"></i></button>
+                <h2 class="text-xl font-bold mb-4">Daftar Akun Siswa Baru</h2>
+                <form id="registerForm" class="space-y-3">
+                    <input type="text" id="regNama" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Nama Lengkap" required>
+                    <input type="email" id="regEmail" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Email" required>
+                    <input type="password" id="regPass" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Password" required>
+                    <button type="submit" class="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl">Daftar</button>
+                </form>
+             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD LAYOUT -->
-    <div id="app" class="hidden flex w-full h-full">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4">
-            <div class="flex items-center gap-2 px-2 mb-8">
-                <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white"><i class="ri-graduation-cap-fill"></i></div>
-                <span class="font-bold text-lg">Nulacademy</span>
+    <!-- APP SHELL -->
+    <div id="app-shell" class="hidden flex w-full h-full">
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-white border-r flex flex-col shadow-sm">
+            <div class="p-5 border-b">
+                 <img src="https://ibb.co.com/qY24Zyhp" class="h-10 w-10 rounded-xl inline-block align-middle mr-2 object-cover">
+                 <span class="font-bold text-lg align-middle">Nulacademy</span>
             </div>
-            <nav class="flex-1 space-y-1">
-                <a onclick="loadPage('dashboard')" class="menu-item active flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 transition font-semibold"><i class="ri-home-5-line"></i> Dashboard</a>
-                <a onclick="loadPage('courses')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 transition font-semibold"><i class="ri-book-open-line"></i> Courses</a>
-                <a onclick="loadPage('chat')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 transition font-semibold"><i class="ri-chat-3-line"></i> Chat</a>
-            </nav>
-            <div class="border-t pt-4 mt-4 px-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center"><i class="ri-user-line text-slate-500"></i></div>
-                    <div>
-                        <p id="profileName" class="font-bold text-sm">User</p>
-                        <p id="profileRole" class="text-xs text-slate-400 capitalize">Role</p>
-                    </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a onclick="loadPage('dashboard')" class="menu-item active flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-indigo-50 font-semibold text-slate-600"><i class="ri-home-5-line"></i> Dashboard</a>
+                <a onclick="loadPage('courses')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-indigo-50 font-semibold text-slate-600"><i class="ri-book-open-line"></i> Courses</a>
+                <a onclick="loadPage('chat')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-indigo-50 font-semibold text-slate-600"><i class="ri-chat-3-line"></i> Chat</a>
+                
+                <!-- Teacher Only Menu -->
+                <div id="admin-menu" class="hidden">
+                    <hr class="my-2">
+                    <p class="px-4 text-xs text-slate-400 font-bold uppercase">Admin</p>
+                    <a onclick="loadPage('students')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-indigo-50 font-semibold text-slate-600"><i class="ri-user-settings-line"></i> Data Siswa</a>
                 </div>
+            </nav>
+            <div class="p-4 border-t">
+                <button onclick="logout()" class="w-full text-left text-red-500 font-semibold text-sm hover:text-red-700"><i class="ri-logout-box-r-line"></i> Logout</button>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
-            <header class="bg-white border-b px-8 py-4 flex justify-between items-center">
-                <h1 id="pageTitle" class="text-xl font-bold">Dashboard</h1>
-                <span id="profileKelas" class="text-xs px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-bold">Kelas</span>
-            </header>
-            <div id="pageContent" class="flex-1 overflow-y-auto p-8"></div>
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 bg-slate-50 overflow-y-auto">
+            <div id="content-area" class="p-8"></div>
         </main>
     </div>
 
     <script>
-        // Gunakan alamat function langsung, bukan /api
         const API = '/.netlify/functions/api';
         let TOKEN = localStorage.getItem('token');
-        let USER = JSON.parse(localStorage.getItem('user'));
+        let USER = JSON.parse(localStorage.getItem('user') || 'null');
+        let SELECTED_CHAT_ROOM = 'Bisa Excel'; // Default room untuk teacher
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         window.onload = () => {
             if (TOKEN && USER) showApp();
             else showLogin();
         };
 
+        function showApp() {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('app-shell').classList.remove('hidden');
+            
+            if(USER.role === 'teacher') {
+                document.getElementById('admin-menu').classList.remove('hidden');
+            }
+            loadPage('dashboard');
+        }
+        
+        function showLogin() {
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('app-shell').classList.add('hidden');
+        }
+
+        function toggleRegister() {
+            const m = document.getElementById('registerModal');
+            m.classList.toggle('hidden');
+        }
+
         // --- AUTH ACTIONS ---
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPass').value;
+            const pass = document.getElementById('loginPass').value;
             
             const res = await fetch(`${API}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password: pass })
             });
             const data = await res.json();
-            
+
             if (res.ok) {
                 TOKEN = data.token;
                 USER = data.user;
@@ -129,28 +134,26 @@
                 localStorage.setItem('user', JSON.stringify(USER));
                 showApp();
             } else {
-                Swal.fire('Gagal', data.error, 'error');
+                Swal.fire('Gagal Login', data.error, 'error');
             }
         };
 
         document.getElementById('registerForm').onsubmit = async (e) => {
             e.preventDefault();
-            const payload = {
-                nama: document.getElementById('regNama').value,
-                email: document.getElementById('regEmail').value,
-                password: document.getElementById('regPass').value,
-                kelas: document.getElementById('regKelas').value,
-                role: document.getElementById('regRole').value
-            };
+            const nama = document.getElementById('regNama').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+
             const res = await fetch(`${API}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ nama, email, password: pass, kelas: 'Pemula' })
             });
             const data = await res.json();
+            
             if (res.ok) {
-                Swal.fire('Sukses', 'Akun dibuat, silakan login', 'success');
-                hideRegister();
+                Swal.fire('Sukses', 'Pendaftaran berhasil, silakan login', 'success');
+                toggleRegister();
             } else {
                 Swal.fire('Error', data.error, 'error');
             }
@@ -161,118 +164,206 @@
             window.location.reload();
         }
 
-        // --- UI CONTROLLERS ---
-        function showApp() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            document.getElementById('profileName').innerText = USER.nama;
-            document.getElementById('profileRole').innerText = USER.role;
-            document.getElementById('profileKelas').innerText = `Kelas ${USER.kelas}`;
-            loadPage('dashboard');
-        }
-        function showLogin() { document.getElementById('login-screen').classList.remove('hidden'); }
-        function showRegister() { document.getElementById('registerModal').classList.remove('hidden'); document.getElementById('registerModal').classList.add('flex'); }
-        function hideRegister() { document.getElementById('registerModal').classList.add('hidden'); }
-
+        // --- PAGE LOADER ---
         async function loadPage(page) {
-            // Active Menu Logic
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('bg-indigo-50', 'text-indigo-700'));
-            event.target.closest('.menu-item')?.classList.add('bg-indigo-50', 'text-indigo-700');
+            const area = document.getElementById('content-area');
+            // Update active menu style
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active', 'bg-indigo-50', 'text-indigo-600'));
+            // event object tidak selalu ada, jadi cari manual
+            const menuLinks = document.querySelectorAll('.menu-item');
+            menuLinks.forEach(link => {
+                if(link.getAttribute('onclick')?.includes(`'${page}'`)) link.classList.add('active', 'bg-indigo-50', 'text-indigo-600');
+            });
 
-            const container = document.getElementById('pageContent');
-            const title = document.getElementById('pageTitle');
-            container.innerHTML = '<div class="flex justify-center p-10"><i class="ri-loader-4-line animate-spin text-3xl text-indigo-600"></i></div>';
+            area.innerHTML = '<div class="flex justify-center p-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div></div>';
 
-            if (page === 'dashboard') {
-                title.innerText = "Dashboard";
-                container.innerHTML = `
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="text-slate-400 text-sm font-bold uppercase">Status</h3>
-                            <p class="text-2xl font-black mt-2 capitalize">${USER.role}</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="text-slate-400 text-sm font-bold uppercase">Kelas</h3>
-                            <p class="text-2xl font-black mt-2">${USER.kelas}</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="text-slate-400 text-sm font-bold uppercase">Paket</h3>
-                            <p class="text-2xl font-black mt-2">${USER.paket_aktif || 'Belum Ada'}</p>
+            if(page === 'dashboard') renderDashboard();
+            else if(page === 'courses') renderCourses();
+            else if(page === 'chat') renderChat();
+            else if(page === 'students') renderAdminStudents();
+        }
+
+        // --- RENDER FUNCTIONS ---
+
+        async function renderDashboard() {
+            const area = document.getElementById('content-area');
+            
+            // Ambil data tugas terbaru
+            const res = await fetch(`${API}/tugas`, { headers: { Authorization: `Bearer ${TOKEN}` }});
+            const tugas = await res.json();
+            
+            const pendingTasks = tugas.filter(t => t.status === 'pending').length;
+            const gradedTasks = tugas.filter(t => t.status === 'graded');
+
+            area.innerHTML = `
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-slate-800">Selamat Datang, ${USER.nama}</h1>
+                    <p class="text-slate-500">Role: ${USER.role} | Paket: <span class="font-bold text-indigo-600">${USER.paket_aktif || 'Belum Aktif'}</span></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 card-hover">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-slate-400 text-sm">Status Paket</p>
+                                <h3 class="text-xl font-black mt-1">${USER.paket_aktif || 'N/A'}</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600"><i class="ri-medal-line text-2xl"></i></div>
                         </div>
                     </div>
-                `;
-            } 
-            else if (page === 'courses') {
-                title.innerText = "Daftar Course";
-                const res = await fetch(`${API}/courses`, { headers: { Authorization: `Bearer ${TOKEN}` }});
-                const courses = await res.json();
-                
-                let teacherBtn = '';
-                if (USER.role === 'teacher') {
-                    teacherBtn = `<button onclick="addCourseUI()" class="mb-6 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow hover:bg-indigo-700"><i class="ri-add-line"></i> Tambah Course</button>`;
-                }
-
-                container.innerHTML = teacherBtn + `<div class="grid grid-cols-2 gap-4" id="courseList"></div>`;
-                const list = document.getElementById('courseList');
-                
-                if(courses.length === 0) list.innerHTML = "<p class='text-slate-400 col-span-2'>Belum ada course</p>";
-                else {
-                    list.innerHTML = courses.map(c => `
-                        <div class="bg-white p-5 rounded-xl border border-slate-100 hover:shadow-md transition">
-                            <h4 class="font-bold text-lg">${c.judul_course}</h4>
-                            <p class="text-slate-500 text-sm my-2">${c.deskripsi || '-'}</p>
-                            <a href="${c.link_drive}" target="_blank" class="text-indigo-600 font-semibold text-sm hover:underline"><i class="ri-link"></i> Buka Materi</a>
-                        </div>
-                    `).join('');
-                }
-            }
-            else if (page === 'chat') {
-                title.innerText = `Chat Kelas ${USER.kelas}`;
-                container.innerHTML = `
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[calc(100vh-200px)]">
-                        <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
-                        <div class="p-4 border-t flex gap-2">
-                            <input type="text" id="msgInput" class="flex-1 bg-slate-50 px-4 py-2 rounded-xl outline-none" placeholder="Ketik pesan...">
-                            <button onclick="sendMsg()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700"><i class="ri-send-plane-fill"></i></button>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 card-hover">
+                         <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-slate-400 text-sm">Tugas Pending</p>
+                                <h3 class="text-xl font-black mt-1">${pendingTasks}</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600"><i class="ri-time-line text-2xl"></i></div>
                         </div>
                     </div>
-                `;
-                loadChat();
-                // Polling sederhana untuk realtime
-                setInterval(loadChat, 3000);
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 card-hover">
+                         <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-slate-400 text-sm">Sisa Pertemuan</p>
+                                <h3 class="text-xl font-black mt-1">${USER.sisa_pertemuan || 0}</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600"><i class="ri-calendar-check-line text-2xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold mb-4 text-lg">Riwayat Nilai Terbaru</h3>
+                    ${gradedTasks.length === 0 ? '<p class="text-slate-400 text-sm">Belum ada nilai.</p>' : 
+                    `<div class="space-y-3">
+                        ${gradedTasks.slice(0, 5).map(t => `
+                            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                                <span class="font-semibold">${t.course?.judul_course || 'Course'}</span>
+                                <span class="font-bold text-indigo-600">${t.nilai}</span>
+                            </div>
+                        `).join('')}
+                    </div>`}
+                </div>
+            `;
+        }
+
+        async function renderCourses() {
+            const area = document.getElementById('content-area');
+            const res = await fetch(`${API}/courses`, { headers: { Authorization: `Bearer ${TOKEN}` }});
+            const courses = await res.json();
+
+            area.innerHTML = `
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800">Daftar Materi Course</h1>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${courses.map(c => `
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 ${c.isLocked ? 'opacity-50 relative' : 'card-hover'}">
+                            ${c.isLocked ? '<div class="absolute inset-0 bg-slate-200/50 backdrop-blur-sm z-10 rounded-2xl flex items-center justify-center"><i class="ri-lock-line text-3xl text-slate-500"></i></div>' : ''}
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Course ${c.urutan}</span>
+                            <h3 class="font-bold text-lg mt-2">${c.judul_course}</h3>
+                            <p class="text-slate-500 text-sm mt-1 h-20 overflow-hidden">${c.deskripsi}</p>
+                            
+                            <div class="mt-4 flex gap-2">
+                                <button onclick="downloadFile('${c.file_url}')" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 flex items-center justify-center gap-1 ${c.isLocked ? 'pointer-events-none' : ''}">
+                                    <i class="ri-download-line"></i> Download
+                                </button>
+                                <button onclick="showUploadModal(${c.id})" class="flex-1 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-xl text-sm font-semibold hover:bg-indigo-50 flex items-center justify-center gap-1 ${c.isLocked ? 'pointer-events-none' : ''}">
+                                    <i class="ri-upload-line"></i> Upload
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        async function renderChat() {
+            const area = document.getElementById('content-area');
+            
+            // Logika Room Chat
+            let rooms = [];
+            let currentRoom = '';
+
+            if (USER.role === 'teacher') {
+                rooms = ['Bisa Excel', 'Jago Excel', 'Ahli Excel'];
+                currentRoom = SELECTED_CHAT_ROOM;
+            } else {
+                rooms = [USER.paket_aktif];
+                currentRoom = USER.paket_aktif;
             }
+
+            area.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-2xl font-bold text-slate-800">Chat Room</h1>
+                    <div class="flex gap-2">
+                        ${rooms.map(r => `
+                            <button onclick="switchChatRoom('${r}')" class="px-4 py-1 rounded-full text-sm font-bold ${currentRoom === r ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border'}">${r}</button>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[65vh]">
+                    <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+                    <div class="p-4 border-t flex gap-2">
+                        <input type="text" id="msgInput" class="flex-1 bg-slate-50 px-4 py-2 rounded-xl outline-none" placeholder="Ketik pesan...">
+                        <button onclick="sendMsg('${currentRoom}')" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700"><i class="ri-send-plane-fill"></i></button>
+                    </div>
+                </div>
+            `;
+            loadChatData(currentRoom);
+        }
+
+        async function renderAdminStudents() {
+            if(USER.role !== 'teacher') return;
+            const area = document.getElementById('content-area');
+            
+            const res = await fetch(`${API}/users`, { headers: { Authorization: `Bearer ${TOKEN}` }});
+            const users = await res.json();
+
+            area.innerHTML = `
+                <h1 class="text-2xl font-bold text-slate-800 mb-6">Manajemen Siswa</h1>
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="text-left p-4">Nama</th>
+                                <th class="text-left p-4">Email</th>
+                                <th class="text-left p-4">Paket</th>
+                                <th class="text-left p-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.filter(u => u.role === 'student').map(u => `
+                                <tr class="border-b hover:bg-slate-50">
+                                    <td class="p-4 font-semibold">${u.nama}</td>
+                                    <td class="p-4 text-slate-500">${u.email}</td>
+                                    <td class="p-4"><span class="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold">${u.paket_aktif}</span></td>
+                                    <td class="p-4">
+                                        <button onclick="editUser('${u.id}', '${u.nama}', '${u.paket_aktif}')" class="text-indigo-600 font-bold mr-2"><i class="ri-edit-line"></i> Edit</button>
+                                        <button onclick="deleteUser('${u.id}')" class="text-red-500 font-bold"><i class="ri-delete-bin-line"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
 
         // --- ACTIONS ---
-        async function addCourseUI() {
-            const { value: form } = await Swal.fire({
-                title: 'Tambah Course',
-                html: `
-                    <input id="swal1" class="swal2-input" placeholder="Judul">
-                    <textarea id="swal2" class="swal2-textarea" placeholder="Deskripsi"></textarea>
-                    <input id="swal3" class="swal2-input" placeholder="Link Drive">
-                `,
-                preConfirm: () => ({ judul: document.getElementById('swal1').value, deskripsi: document.getElementById('swal2').value, link: document.getElementById('swal3').value })
-            });
-            if (form) {
-                await fetch(`${API}/courses`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-                    body: JSON.stringify(form)
-                });
-                loadPage('courses');
-            }
+        
+        async function switchChatRoom(room) {
+            SELECTED_CHAT_ROOM = room;
+            renderChat();
         }
 
-        async function loadChat() {
-            if (!USER) return;
-            const res = await fetch(`${API}/chat`, { headers: { Authorization: `Bearer ${TOKEN}` }});
+        async function loadChatData(room) {
+            if(!room) return;
+            const res = await fetch(`${API}/chat?kelas=${room}`, { headers: { Authorization: `Bearer ${TOKEN}` }});
             const chats = await res.json();
             const box = document.getElementById('chatBox');
-            if(!box) return;
             
             box.innerHTML = chats.map(c => `
-                <div class="chat-bubble flex ${c.user_id === USER.id ? 'justify-end' : ''}">
+                <div class="flex ${c.user_id === USER.id ? 'justify-end' : ''}">
                     <div class="px-4 py-2 rounded-2xl max-w-xs ${c.user_id === USER.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-800'}">
                         <span class="block text-xs font-bold opacity-70 mb-1">${c.akun?.nama || 'Anon'}</span>
                         ${c.pesan}
@@ -282,21 +373,92 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        async function sendMsg() {
+        async function sendMsg(room) {
             const input = document.getElementById('msgInput');
             const pesan = input.value;
             if(!pesan) return;
-            
+
             await fetch(`${API}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-                body: JSON.stringify({ pesan })
+                body: JSON.stringify({ pesan, kelas: room })
             });
             input.value = '';
-            loadChat();
+            loadChatData(room);
         }
+
+        function downloadFile(url) {
+            if(!url || url.includes('example.com')) {
+                Swal.fire('Info', 'File belum tersedia oleh Teacher', 'info');
+                return;
+            }
+            window.open(url, '_blank');
+        }
+
+        function showUploadModal(courseId) {
+            Swal.fire({
+                title: 'Upload Tugas',
+                html: `<input type="file" id="fileInput" class="swal2-file" accept=".xlsx,.xls,.pdf,.docx">`,
+                confirmButtonText: 'Kirim',
+                preConfirm: () => {
+                    const file = document.getElementById('fileInput').files[0];
+                    if (!file) { Swal.showValidationMessage('Pilih file!'); return; }
+                    
+                    // Read as base64
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = async () => {
+                        const base64 = reader.result.split(',')[1];
+                        
+                        Swal.showLoading();
+                        const res = await fetch(`${API}/upload-tugas`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                            body: JSON.stringify({ 
+                                courseId, 
+                                fileName: file.name, 
+                                fileData: base64 
+                            })
+                        });
+
+                        if (res.ok) {
+                            Swal.fire('Sukses', 'Tugas berhasil dikirim!', 'success');
+                        } else {
+                            Swal.fire('Error', 'Gagal upload', 'error');
+                        }
+                    };
+                    return false; // prevent auto close
+                }
+            });
+        }
+
+        async function editUser(id, name, currentPaket) {
+            const { value: formValues } = await Swal.fire({
+                title: `Edit Siswa: ${name}`,
+                html: `
+                    <select id="swal-paket" class="swal2-select">
+                        <option value="Bisa Excel" ${currentPaket === 'Bisa Excel' ? 'selected' : ''}>Paket Bisa Excel</option>
+                        <option value="Jago Excel" ${currentPaket === 'Jago Excel' ? 'selected' : ''}>Paket Jago Excel</option>
+                        <option value="Ahli Excel" ${currentPaket === 'Ahli Excel' ? 'selected' : ''}>Paket Ahli Excel</option>
+                    </select>
+                `,
+                confirmButtonText: 'Simpan',
+                preConfirm: () => {
+                    return { paket: document.getElementById('swal-paket').value }
+                }
+            });
+
+            if (formValues) {
+                await fetch(`${API}/update-user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ userId: id, updateData: { paket_aktif: formValues.paket } })
+                });
+                Swal.fire('Updated', 'Data siswa berhasil diupdate', 'success');
+                loadPage('students');
+            }
+        }
+
     </script>
 </body>
-
 </html>
-
