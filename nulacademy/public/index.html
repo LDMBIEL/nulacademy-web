@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nulacademy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .chat-bubble { animation: pop 0.2s ease; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen flex">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center z-50">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl text-indigo-600 text-3xl mb-4">
+                    <i class="ri-graduation-cap-fill"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold">Nulacademy</h1>
+                <p class="text-slate-400 text-sm mt-1">Sistem Manajemen Belajar</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <input type="email" id="loginEmail" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 ring-indigo-500 outline-none" placeholder="Email" required>
+                <input type="password" id="loginPass" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 ring-indigo-500 outline-none" placeholder="Password" required>
+                <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition">Masuk</button>
+            </form>
+            <p class="text-center text-sm text-slate-500 mt-4">
+                Belum punya akun? <a href="#" onclick="showRegister()" class="text-indigo-600 font-bold">Daftar</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- REGISTER MODAL -->
+    <div id="registerModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden items-center justify-center">
+        <div class="bg-white p-8 rounded-3xl w-full max-w-md relative">
+            <button onclick="hideRegister()" class="absolute top-4 right-4 text-slate-400 hover:text-black"><i class="ri-close-line text-xl"></i></button>
+            <h2 class="text-xl font-bold mb-6">Buat Akun Baru</h2>
+            <form id="registerForm" class="space-y-3">
+                <input type="text" id="regNama" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Nama Lengkap" required>
+                <input type="email" id="regEmail" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Email" required>
+                <input type="password" id="regPass" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200" placeholder="Password" required>
+                <div class="flex gap-3">
+                    <select id="regKelas" class="w-1/2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <option value="Pemula">Pemula</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Lanjutan">Lanjutan</option>
+                    </select>
+                    <select id="regRole" class="w-1/2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl">Daftar Sekarang</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD LAYOUT -->
+    <div id="app" class="hidden flex w-full h-full">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4">
+            <div class="flex items-center gap-2 px-2 mb-8">
+                <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white"><i class="ri-graduation-cap-fill"></i></div>
+                <span class="font-bold text-lg">Nulacademy</span>
+            </div>
+            <nav class="flex-1 space-y-1">
+                <a onclick="loadPage('dashboard')" class="menu-item active flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 transition font-semibold"><i class="ri-home-5-line"></i> Dashboard</a>
+                <a onclick="loadPage('courses')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 transition font-semibold"><i class="ri-book-open-line"></i> Courses</a>
+                <a onclick="loadPage('chat')" class="menu-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 transition font-semibold"><i class="ri-chat-3-line"></i> Chat</a>
+            </nav>
+            <div class="border-t pt-4 mt-4 px-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center"><i class="ri-user-line text-slate-500"></i></div>
+                    <div>
+                        <p id="profileName" class="font-bold text-sm">User</p>
+                        <p id="profileRole" class="text-xs text-slate-400 capitalize">Role</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+            <header class="bg-white border-b px-8 py-4 flex justify-between items-center">
+                <h1 id="pageTitle" class="text-xl font-bold">Dashboard</h1>
+                <span id="profileKelas" class="text-xs px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-bold">Kelas</span>
+            </header>
+            <div id="pageContent" class="flex-1 overflow-y-auto p-8"></div>
+        </main>
+    </div>
+
+    <script>
+        const API = '/.netlify/functions/api'; // Endpoint backend kita
+        let TOKEN = localStorage.getItem('token');
+        let USER = JSON.parse(localStorage.getItem('user'));
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            if (TOKEN && USER) showApp();
+            else showLogin();
+        };
+
+        // --- AUTH ACTIONS ---
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+            
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                TOKEN = data.token;
+                USER = data.user;
+                localStorage.setItem('token', TOKEN);
+                localStorage.setItem('user', JSON.stringify(USER));
+                showApp();
+            } else {
+                Swal.fire('Gagal', data.error, 'error');
+            }
+        };
+
+        document.getElementById('registerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                nama: document.getElementById('regNama').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPass').value,
+                kelas: document.getElementById('regKelas').value,
+                role: document.getElementById('regRole').value
+            };
+            const res = await fetch(`${API}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                Swal.fire('Sukses', 'Akun dibuat, silakan login', 'success');
+                hideRegister();
+            } else {
+                Swal.fire('Error', data.error, 'error');
+            }
+        };
+
+        function logout() {
+            localStorage.clear();
+            window.location.reload();
+        }
+
+        // --- UI CONTROLLERS ---
+        function showApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('profileName').innerText = USER.nama;
+            document.getElementById('profileRole').innerText = USER.role;
+            document.getElementById('profileKelas').innerText = `Kelas ${USER.kelas}`;
+            loadPage('dashboard');
+        }
+        function showLogin() { document.getElementById('login-screen').classList.remove('hidden'); }
+        function showRegister() { document.getElementById('registerModal').classList.remove('hidden'); document.getElementById('registerModal').classList.add('flex'); }
+        function hideRegister() { document.getElementById('registerModal').classList.add('hidden'); }
+
+        async function loadPage(page) {
+            // Active Menu Logic
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('bg-indigo-50', 'text-indigo-700'));
+            event.target.closest('.menu-item')?.classList.add('bg-indigo-50', 'text-indigo-700');
+
+            const container = document.getElementById('pageContent');
+            const title = document.getElementById('pageTitle');
+            container.innerHTML = '<div class="flex justify-center p-10"><i class="ri-loader-4-line animate-spin text-3xl text-indigo-600"></i></div>';
+
+            if (page === 'dashboard') {
+                title.innerText = "Dashboard";
+                container.innerHTML = `
+                    <div class="grid grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 class="text-slate-400 text-sm font-bold uppercase">Status</h3>
+                            <p class="text-2xl font-black mt-2 capitalize">${USER.role}</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 class="text-slate-400 text-sm font-bold uppercase">Kelas</h3>
+                            <p class="text-2xl font-black mt-2">${USER.kelas}</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 class="text-slate-400 text-sm font-bold uppercase">Paket</h3>
+                            <p class="text-2xl font-black mt-2">${USER.paket_aktif || 'Belum Ada'}</p>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (page === 'courses') {
+                title.innerText = "Daftar Course";
+                const res = await fetch(`${API}/courses`, { headers: { Authorization: `Bearer ${TOKEN}` }});
+                const courses = await res.json();
+                
+                let teacherBtn = '';
+                if (USER.role === 'teacher') {
+                    teacherBtn = `<button onclick="addCourseUI()" class="mb-6 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow hover:bg-indigo-700"><i class="ri-add-line"></i> Tambah Course</button>`;
+                }
+
+                container.innerHTML = teacherBtn + `<div class="grid grid-cols-2 gap-4" id="courseList"></div>`;
+                const list = document.getElementById('courseList');
+                
+                if(courses.length === 0) list.innerHTML = "<p class='text-slate-400 col-span-2'>Belum ada course</p>";
+                else {
+                    list.innerHTML = courses.map(c => `
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 hover:shadow-md transition">
+                            <h4 class="font-bold text-lg">${c.judul_course}</h4>
+                            <p class="text-slate-500 text-sm my-2">${c.deskripsi || '-'}</p>
+                            <a href="${c.link_drive}" target="_blank" class="text-indigo-600 font-semibold text-sm hover:underline"><i class="ri-link"></i> Buka Materi</a>
+                        </div>
+                    `).join('');
+                }
+            }
+            else if (page === 'chat') {
+                title.innerText = `Chat Kelas ${USER.kelas}`;
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[calc(100vh-200px)]">
+                        <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+                        <div class="p-4 border-t flex gap-2">
+                            <input type="text" id="msgInput" class="flex-1 bg-slate-50 px-4 py-2 rounded-xl outline-none" placeholder="Ketik pesan...">
+                            <button onclick="sendMsg()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700"><i class="ri-send-plane-fill"></i></button>
+                        </div>
+                    </div>
+                `;
+                loadChat();
+                // Polling sederhana untuk realtime
+                setInterval(loadChat, 3000);
+            }
+        }
+
+        // --- ACTIONS ---
+        async function addCourseUI() {
+            const { value: form } = await Swal.fire({
+                title: 'Tambah Course',
+                html: `
+                    <input id="swal1" class="swal2-input" placeholder="Judul">
+                    <textarea id="swal2" class="swal2-textarea" placeholder="Deskripsi"></textarea>
+                    <input id="swal3" class="swal2-input" placeholder="Link Drive">
+                `,
+                preConfirm: () => ({ judul: document.getElementById('swal1').value, deskripsi: document.getElementById('swal2').value, link: document.getElementById('swal3').value })
+            });
+            if (form) {
+                await fetch(`${API}/courses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify(form)
+                });
+                loadPage('courses');
+            }
+        }
+
+        async function loadChat() {
+            if (!USER) return;
+            const res = await fetch(`${API}/chat`, { headers: { Authorization: `Bearer ${TOKEN}` }});
+            const chats = await res.json();
+            const box = document.getElementById('chatBox');
+            if(!box) return;
+            
+            box.innerHTML = chats.map(c => `
+                <div class="chat-bubble flex ${c.user_id === USER.id ? 'justify-end' : ''}">
+                    <div class="px-4 py-2 rounded-2xl max-w-xs ${c.user_id === USER.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-800'}">
+                        <span class="block text-xs font-bold opacity-70 mb-1">${c.akun?.nama || 'Anon'}</span>
+                        ${c.pesan}
+                    </div>
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('msgInput');
+            const pesan = input.value;
+            if(!pesan) return;
+            
+            await fetch(`${API}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                body: JSON.stringify({ pesan })
+            });
+            input.value = '';
+            loadChat();
+        }
+    </script>
+</body>
+</html>
