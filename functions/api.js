@@ -7,9 +7,8 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Limit besar untuk upload file
+app.use(express.json({ limit: '10mb' })); // Limit besar untuk upload
 
-// Perbaikan Path
 app.use((req, res, next) => {
   if (req.path.startsWith('/.netlify/functions/api')) {
     req.url = req.path.replace('/.netlify/functions/api', '') || '/';
@@ -17,11 +16,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Config
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_rahasia';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Helper: Generate ID Unik
+const generateUID = () => {
+  return 'NU-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+};
 
 // Middleware Auth
 const authMiddleware = async (req, res, next) => {
@@ -39,7 +42,7 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-// ROUTES
+// ================= ROUTES =================
 
 // 1. Login
 app.post('/login', async (req, res) => {
@@ -47,14 +50,10 @@ app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const { data: user, error } = await supabase.from('akun').select('*').eq('email', email).single();
 
-    if (error || !user) {
-      return res.status(401).json({ error: 'Email tidak ditemukan. Coba Daftar jika belum punya akun.' });
-    }
+    if (error || !user) return res.status(401).json({ error: 'Email tidak ditemukan' });
     
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Password salah!' });
-    }
+    if (!isMatch) return res.status(401).json({ error: 'Password salah!' });
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
     const userRes = { ...user };
@@ -65,28 +64,21 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// 2. Register (Hanya Student)
+// 2. Register (Student Only, Generate Unique ID)
 app.post('/register', async (req, res) => {
   try {
-    const { nama, email, password, kelas } = req.body;
-    
-    // Validasi input
+    const { nama, email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email & password wajib' });
 
-    // Cek email teacher
-    if (email === 'baguslathifazya@gmail.com') {
-       return res.status(403).json({ error: 'Akun ini sudah terdaftar sebagai Teacher. Silakan Login.' });
-    }
-
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Insert dengan role student default
+    const kodeUnik = generateUID();
+
     const { data, error } = await supabase.from('akun').insert([{
+      kode_unik: kodeUnik,
       nama, 
       email, 
       password: hashedPassword, 
-      role: 'student', // Paksa Student
-      kelas: kelas || 'Pemula',
+      role: 'student', // Force Student
       paket_aktif: 'Belum Ada' 
     }]).select();
 
@@ -100,135 +92,196 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// 3. Get Profile
-app.get('/profile', authMiddleware, (req, res) => {
-  res.json(req.user);
-});
-
-// 4. Courses (Logic Paket)
+// 3. Get Courses
 app.get('/courses', authMiddleware, async (req, res) => {
   const { data: courses, error } = await supabase.from('course').select('*').order('urutan', { ascending: true });
   if (error) return res.status(400).json({ error: error.message });
 
-  // Logika Akses Paket
   const paket = req.user.paket_aktif;
   let limit = 0;
-
   if (paket === 'Bisa Excel') limit = 4;
   else if (paket === 'Jago Excel') limit = 8;
   else if (paket === 'Ahli Excel') limit = 12;
-  else limit = 0; // Jika belum ada paket
-
-  // Jika Teacher, buka semua
+  
   if (req.user.role === 'teacher') limit = 12;
 
-  // Tandai course terkunci
-  const result = courses.map((c, index) => ({
-    ...c,
-    isLocked: (index + 1) > limit
-  }));
-
+  const result = courses.map((c, index) => ({ ...c, isLocked: (index + 1) > limit }));
   res.json(result);
 });
 
-// 5. Upload Tugas (Student)
-app.post('/upload-tugas', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'student') return res.status(403).json({ error: 'Hanya student' });
-  
-  const { courseId, fileName, fileData } = req.body; // fileData adalah base64 string
+// 4. Get Single Course Detail
+app.get('/course/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase.from('course').select('*').eq('id', id).single();
+  if (error) return res.status(400).json({ error: error.message });
 
-  // 1. Upload ke Supabase Storage
+  // Cek apakah user sudah upload tugas untuk ini
+  const { data: tugas } = await supabase.from('tugas')
+    .select('*')
+    .eq('course_id', id)
+    .eq('user_id', req.user.id)
+    .single();
+
+  res.json({ course: data, myTugas: tugas || null });
+});
+
+// 5. Upload Tugas
+app.post('/upload-tugas', authMiddleware, async (req, res) => {
+  const { courseId, fileName, fileData } = req.body;
   const filePath = `tugas/${req.user.id}/${courseId}_${fileName}`;
   const buffer = Buffer.from(fileData, 'base64');
   
-  const { error: uploadError } = await supabase.storage
-    .from('tugas') // nama bucket
-    .upload(filePath, buffer, { upsert: true });
-
+  const { error: uploadError } = await supabase.storage.from('tugas').upload(filePath, buffer, { upsert: true });
   if (uploadError) return res.status(400).json({ error: 'Gagal upload file' });
 
-  // 2. Dapatkan Public URL
   const { data: urlData } = supabase.storage.from('tugas').getPublicUrl(filePath);
-  const fileUrl = urlData.publicUrl;
-
-  // 3. Simpan ke tabel tugas
-  const { data, error: dbError } = await supabase.from('tugas').insert([{
+  
+  // Upsert tugas (kalau sudah ada update, kalau belum insert)
+  const { error: dbError } = await supabase.from('tugas').upsert([{
     user_id: req.user.id,
     course_id: courseId,
-    file_url: fileUrl,
-    status: 'pending'
-  }]).select();
+    file_url: urlData.publicUrl,
+    status: 'submitted',
+    nilai: null, // Reset nilai jika diupload ulang
+    komentar: null
+  }], { onConflict: 'user_id, course_id' }); // Pastikan ada constraint unique user_id, course_id di DB jika pakai upsert ini, atau manual logic
+  // Untuk simplisitas, kita insert baru saja. Teacher bisa lihat history.
+  
+  // Simplified Insert:
+  await supabase.from('tugas').insert([{
+    user_id: req.user.id,
+    course_id: courseId,
+    file_url: urlData.publicUrl,
+    status: 'submitted'
+  }]);
 
-  if (dbError) return res.status(400).json({ error: dbError.message });
-  res.status(201).json({ message: 'Tugas terkirim!', data });
+  res.status(201).json({ message: 'Tugas terkirim!' });
 });
 
-// 6. Get Tugas (Untuk Dashboard Student & Teacher)
-app.get('/tugas', authMiddleware, async (req, res) => {
-  let query = supabase.from('tugas').select('*, course(judul_course), akun(nama)');
-  
-  // Jika teacher, ambil semua. Jika student, ambil miliknya saja.
-  if (req.user.role === 'student') {
-    query = query.eq('user_id', req.user.id);
-  }
-  
-  const { data, error } = await query;
-  if (error) return res.status(400).json({ error: error.message });
+// 6. Teacher: Get All Submissions
+app.get('/submissions', authMiddleware, async (req, res) => {
+  if(req.user.role !== 'teacher') return res.status(403).json({error: 'Forbidden'});
+  const { data } = await supabase.from('tugas')
+    .select('*, course(judul_course), akun(nama, kode_unik)')
+    .order('submitted_at', { ascending: false });
   res.json(data);
 });
 
-// 7. Chat (Logic Paket)
-app.get('/chat', authMiddleware, async (req, res) => {
-  let kelas = req.query.kelas;
+// 7. Teacher: Give Grade
+app.post('/grade', authMiddleware, async (req, res) => {
+  if(req.user.role !== 'teacher') return res.status(403).json({error: 'Forbidden'});
+  const { tugasId, nilai, komentar } = req.body;
+  const { error } = await supabase.from('tugas')
+    .update({ nilai: nilai, komentar: komentar, status: 'graded' })
+    .eq('id', tugasId);
   
-  // Teacher bisa akses semua room
-  if (req.user.role === 'teacher') {
-     if(!kelas) return res.json([]); // harus pilih room
-     // gunakan parameter kelas
-  } else {
-     // Student hanya bisa akses chat sesuai paketnya
-     kelas = req.user.paket_aktif; 
-  }
+  if(error) return res.status(400).json({ error: error.message });
+  res.json({ message: 'Nilai tersimpan' });
+});
+
+// ================= SOSIAL FITUR =================
+
+// 8. Search Friend by ID
+app.get('/search-friend', authMiddleware, async (req, res) => {
+  const { kode } = req.query;
+  const { data, error } = await supabase.from('akun').select('id, nama, kode_unik').eq('kode_unik', kode).single();
+  if (error || !data) return res.status(404).json({ error: 'User tidak ditemukan' });
+  if (data.id === req.user.id) return res.status(400).json({ error: 'Tidak bisa mencari diri sendiri' });
+  res.json(data);
+});
+
+// 9. Add Friend (Limit 10)
+app.post('/add-friend', authMiddleware, async (req, res) => {
+  const { friendId } = req.body;
+  
+  // Cek jumlah teman
+  const { count, error: countError } = await supabase.from('teman')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', req.user.id);
+  
+  if (count >= 10) return res.status(400).json({ error: 'Batas maksimal 10 teman tercapai' });
+
+  // Insert Friendship (A ke B dan B ke A)
+  await supabase.from('teman').insert([
+    { user_id: req.user.id, teman_id: friendId },
+    { user_id: friendId, teman_id: req.user.id }
+  ]);
+
+  res.json({ message: 'Teman ditambahkan' });
+});
+
+// 10. Get My Friends
+app.get('/friends', authMiddleware, async (req, res) => {
+  const { data } = await supabase.from('teman')
+    .select('teman_id, akun(id, nama, kode_unik)') // Join ke tabel akun
+    .eq('user_id', req.user.id);
+  
+  // Cleanup data structure
+  const friends = data.map(d => d.akun);
+  res.json(friends);
+});
+
+// 11. Get Private Chat History
+app.get('/chat-pribadi/:friendId', authMiddleware, async (req, res) => {
+  const { friendId } = req.params;
+  const myId = req.user.id;
+
+  // Ambil chat where (pengirim=aku & penerima=dia) OR (pengirim=dia & penerima=aku)
+  const { data } = await supabase.from('chat_pribadi')
+    .select('*')
+    .or(`and(pengirim_id.eq.${myId},penerima_id.eq.${friendId}),and(pengirim_id.eq.${friendId},penerima_id.eq.${myId})`)
+    .order('created_at', { ascending: true });
+
+  res.json(data);
+});
+
+// 12. Send Private Chat
+app.post('/chat-pribadi', authMiddleware, async (req, res) => {
+  const { penerima_id, pesan } = req.body;
+  const { error } = await supabase.from('chat_pribadi').insert([{
+    pengirim_id: req.user.id,
+    penerima_id: penerima_id,
+    pesan: pesan
+  }]);
+  if(error) return res.status(400).json({ error: error.message });
+  res.status(201).json({ message: 'Terkirim' });
+});
+
+// 13. Chat Room (Group)
+app.get('/chat-room', authMiddleware, async (req, res) => {
+  let kelas = req.user.paket_aktif;
+  if (req.user.role === 'teacher') kelas = req.query.kelas; // Teacher pilih kelas
 
   const { data } = await supabase.from('chat')
-    .select('id, pesan, created_at, akun(nama)')
+    .select('*, akun(nama, kode_unik)')
     .eq('kelas', kelas)
     .order('created_at', { ascending: true });
   res.json(data);
 });
 
-app.post('/chat', authMiddleware, async (req, res) => {
-  const { pesan } = req.body;
-  let kelas = req.user.paket_aktif;
+app.post('/chat-room', authMiddleware, async (req, res) => {
+  const { pesan, kelas } = req.body;
+  const targetKelas = req.user.role === 'teacher' ? kelas : req.user.paket_aktif;
   
-  // Teacher pilih kelas mana? Untuk simplisitas, teacher kirim ke room yang dia buka
-  // Atau di frontend kirim parameter 'kelas' manual
-  if(req.user.role === 'teacher') {
-      kelas = req.body.kelas || 'Bisa Excel'; // Default
-  }
-
-  const { data, error } = await supabase.from('chat').insert([{
-    user_id: req.user.id, kelas: kelas, pesan
-  }]).select();
+  const { error } = await supabase.from('chat').insert([{
+    user_id: req.user.id, kelas: targetKelas, pesan
+  }]);
   if (error) return res.status(400).json({ error: error.message });
-  res.status(201).json(data);
+  res.status(201).json({ message: 'Terkirim' });
 });
 
-// 8. Admin: Get All Users (Teacher Only)
-app.get('/users', authMiddleware, async (req, res) => {
+// 14. Admin: Get Students & Update Paket
+app.get('/admin/students', authMiddleware, async (req, res) => {
   if (req.user.role !== 'teacher') return res.status(403).json({ error: 'Forbidden' });
-  const { data } = await supabase.from('akun').select('*');
+  const { data } = await supabase.from('akun').select('*').eq('role', 'student');
   res.json(data);
 });
 
-// 9. Admin: Update User (Teacher Only)
-app.post('/update-user', authMiddleware, async (req, res) => {
+app.post('/admin/update-paket', authMiddleware, async (req, res) => {
   if (req.user.role !== 'teacher') return res.status(403).json({ error: 'Forbidden' });
-  const { userId, updateData } = req.body; // updateData berisi { paket_aktif, kelas, dll }
-  
-  const { data, error } = await supabase.from('akun').update(updateData).eq('id', userId);
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ message: 'User updated', data });
+  const { userId, paket } = req.body;
+  await supabase.from('akun').update({ paket_aktif: paket }).eq('id', userId);
+  res.json({ message: 'Updated' });
 });
 
 exports.handler = serverless(app);
